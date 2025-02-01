@@ -1,46 +1,72 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(TodoApp());
+  runApp(MyApp());
 }
 
-class TodoApp extends StatelessWidget {
-  const TodoApp({super.key});
-
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: TodoScreen(),
+      title: 'To-Do List App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: TodoList(),
     );
   }
 }
 
-class TodoScreen extends StatefulWidget {
-  const TodoScreen({super.key});
-
+class TodoList extends StatefulWidget {
   @override
-  _TodoScreenState createState() => _TodoScreenState();
+  _TodoListState createState() => _TodoListState();
 }
 
-class _TodoScreenState extends State<TodoScreen> {
-  final TextEditingController _controller = TextEditingController();
-  final List<String> _tasks = [];
+class _TodoListState extends State<TodoList> {
+  List<String> tasks = [];
+  TextEditingController taskController = TextEditingController();
 
-  void _addTask() {
-    String task = _controller.text.trim();
-    if (task.isNotEmpty) {
-      setState(() {
-        _tasks.add(task);
-      });
-      _controller.clear();
+  void addTask() {
+    String task = taskController.text.trim();
+    if (task.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Veuillez entrer une tâche valide')),
+      );
+      return;
     }
+    setState(() {
+      tasks.add(task);
+      taskController.clear();
+    });
   }
 
-  void _deleteTask(int index) {
-    setState(() {
-      _tasks.removeAt(index);
-    });
+  void deleteTask(int index) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirmer la suppression'),
+          content: Text('Êtes-vous sûr de vouloir supprimer cette tâche ?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Annuler'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Supprimer'),
+              onPressed: () {
+                setState(() {
+                  tasks.removeAt(index);
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -49,44 +75,47 @@ class _TodoScreenState extends State<TodoScreen> {
       appBar: AppBar(
         title: Text('To-Do List'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Row(
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
               children: [
                 Expanded(
                   child: TextField(
-                    controller: _controller,
+                    controller: taskController,
                     decoration: InputDecoration(
-                      hintText: 'Enter a task',
+                      labelText: 'Nouvelle tâche',
+                      border: OutlineInputBorder(),
                     ),
                   ),
                 ),
-                SizedBox(width: 10),
+                SizedBox(width: 8),
                 ElevatedButton(
-                  onPressed: _addTask,
-                  child: Text('Add'),
+                  onPressed: addTask,
+                  child: Text('Ajouter'),
                 ),
               ],
             ),
-            SizedBox(height: 20),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _tasks.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(_tasks[index]),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: tasks.length,
+              itemBuilder: (context, index) {
+                return Card(
+                  margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                  child: ListTile(
+                    title: Text(tasks[index]),
                     trailing: IconButton(
                       icon: Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _deleteTask(index),
+                      onPressed: () => deleteTask(index),
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
