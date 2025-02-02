@@ -1,72 +1,49 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(ToDoApp());
 }
 
-class MyApp extends StatelessWidget {
+class ToDoApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'To-Do List App',
+      title: 'To-Do List',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: TodoList(),
+      home: ToDoListScreen(),
     );
   }
 }
 
-class TodoList extends StatefulWidget {
+class ToDoListScreen extends StatefulWidget {
   @override
-  _TodoListState createState() => _TodoListState();
+  _ToDoListScreenState createState() => _ToDoListScreenState();
 }
 
-class _TodoListState extends State<TodoList> {
+class _ToDoListScreenState extends State<ToDoListScreen> {
+  // List to hold tasks
   List<String> tasks = [];
+
+  // Controller for the TextField
   TextEditingController taskController = TextEditingController();
 
+  // Function to add a task
   void addTask() {
-    String task = taskController.text.trim();
-    if (task.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Veuillez entrer une tâche valide')),
-      );
-      return;
+    if (taskController.text.isNotEmpty) {
+      setState(() {
+        tasks.add(taskController.text);
+        taskController.clear(); // Clear the input field
+      });
     }
-    setState(() {
-      tasks.add(task);
-      taskController.clear();
-    });
   }
 
+  // Function to delete a task
   void deleteTask(int index) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Confirmer la suppression'),
-          content: Text('Êtes-vous sûr de vouloir supprimer cette tâche ?'),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Annuler'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Supprimer'),
-              onPressed: () {
-                setState(() {
-                  tasks.removeAt(index);
-                });
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
+    setState(() {
+      tasks.removeAt(index);
+    });
   }
 
   @override
@@ -77,39 +54,38 @@ class _TodoListState extends State<TodoList> {
       ),
       body: Column(
         children: [
+          // Input section
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(16.0),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: taskController,
                     decoration: InputDecoration(
-                      labelText: 'Nouvelle tâche',
+                      hintText: 'Enter a task',
                       border: OutlineInputBorder(),
                     ),
                   ),
                 ),
-                SizedBox(width: 8),
+                SizedBox(width: 10),
                 ElevatedButton(
                   onPressed: addTask,
-                  child: Text('Ajouter'),
+                  child: Text('Add'),
                 ),
               ],
             ),
           ),
+          // Task list section
           Expanded(
             child: ListView.builder(
               itemCount: tasks.length,
               itemBuilder: (context, index) {
-                return Card(
-                  margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                  child: ListTile(
-                    title: Text(tasks[index]),
-                    trailing: IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => deleteTask(index),
-                    ),
+                return ListTile(
+                  title: Text(tasks[index]),
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => deleteTask(index),
                   ),
                 );
               },
